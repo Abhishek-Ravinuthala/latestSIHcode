@@ -148,9 +148,9 @@ def predict():
 
     # if session.get('authenticated'):
     #     return jsonify({'message': 'Session is active'}), 200
-
+    
     requested_image = request.files['image']
-    model_path = os.path.join('cnn_terrain_detection_18_09.pkl')
+    model_path = os.path.join('latestdigitsnew.h5')
 
     image_path = 'uploads/' + requested_image.filename
     requested_image.save(image_path)
@@ -162,18 +162,18 @@ def predict():
         # plt.imshow(resize.numpy().astype(int))
         # plt.show()
 
-        # knn_from_joblib = load_model('terrain.h5')
-        knn_from_joblib = joblib.load('cnn_terrain_detection_18_09.pkl')
+        knn_from_joblib = load_model('latestdigitsnew.h5')
+        # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
         # load_model = pickle.load(open('model.sav', 'rb'))
         img = tf.image.decode_image(img)
-        img = tf.image.resize(img, [256, 256])
+        img = tf.image.resize(img, [28, 28])
 
     # Scale the tensor
         img = img / 255
-        img = img[:, :, :3]
+        img = img[:, :, :1]
 
         yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        classnames = ['Grassy', 'Marshy', 'Rocky', 'Sandy']
+        classnames = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         classnames = np.array(classnames)
         yes = classnames[yhat[0].argmax()]
 
@@ -183,6 +183,52 @@ def predict():
 
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+
+@app.route('/api/hindi', methods=['POST'])
+def hindi():
+
+    # if session.get('authenticated'):
+    #     return jsonify({'message': 'Session is active'}), 200
+    
+    requested_image = request.files['image']
+    model_path = os.path.join('devanagari_model.h5')
+
+    image_path = 'uploads/' + requested_image.filename
+    requested_image.save(image_path)
+
+    try:
+
+        img = tf.io.read_file(image_path)
+
+        # plt.imshow(resize.numpy().astype(int))
+        # plt.show()
+
+        knn_from_joblib = load_model('devanagari_model.h5')
+        # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
+        # load_model = pickle.load(open('model.sav', 'rb'))
+        img = tf.image.decode_image(img)
+        img = tf.image.resize(img, [32, 32])
+
+    # Scale the tensor
+        img = img / 255
+        img = img[:, :, :1]
+
+        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
+        # classnames = ["ka","kha","ga","gha","kna","cha","chha","ja","jha","yna","t`a","t`ha","d`a","d`ha","adna","ta","tha","da","dha","na","pa","pha","ba","bha","ma","yaw","ra","la","waw","sha","shat","sa","ha","aksha","tra","gya","0","1","2","3","4","5","6","7","8","9"]
+        
+        labels = [u'\u091E',u'\u091F',u'\u0920',u'\u0921',u'\u0922',u'\u0923',u'\u0924',u'\u0925',u'\u0926',u'\u0927',u'\u0915',u'\u0928',u'\u092A',u'\u092B',u'\u092c',u'\u092d',u'\u092e',u'\u092f',u'\u0930',u'\u0932',u'\u0935',u'\u0916',u'\u0936',u'\u0937',u'\u0938',u'\u0939','ksha','tra','gya',u'\u0917',u'\u0918',u'\u0919',u'\u091a',u'\u091b',u'\u091c',u'\u091d',u'\u0966',u'\u0967',u'\u0968',u'\u0969',u'\u096a',u'\u096b',u'\u096c',u'\u096d',u'\u096e',u'\u096f']
+
+        classnames = np.array(labels)
+        yes = classnames[yhat[0].argmax()]
+
+        # if os.path.exists(image_path):
+        #     os.remove(image_path)
+        return jsonify(yes)
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 
 
 if __name__ == "__main__":
