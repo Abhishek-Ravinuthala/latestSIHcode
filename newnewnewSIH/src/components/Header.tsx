@@ -12,7 +12,7 @@ const Header = (props: {
     <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between py-4 px-4 shadow-2 md:px-6 2xl:px-11">
         
-      <Link to='/'><h1 className='px-0 mx-0 text-4xl text-black dark:text-white'>Tenet<p className='px-0 ml-1 text-lg'> Here for your terrain-recognition needs.</p></h1></Link>
+      <Link to='/'><h1 className='px-0 mx-0 text-4xl text-black dark:text-white'>Tenet<p className='px-0 ml-1 text-lg'> Here for your handwritten-text recognition needs.</p></h1></Link>
       
         
 

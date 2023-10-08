@@ -7,9 +7,12 @@ import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 import Loader from './common/Loader';
 import routes from './routes';
-import PredictForm from './components/PredictForm'
+import NumberForm from './components/NumberForm'
 import HindiText from './components/HindiText';
-
+import English from './components/English';
+import Korean from './components/Korean';
+import Japanese from './components/Japanese';
+import Telugu from './components/Telugu';
 const DefaultLayout = lazy(() => import('./layout/DefaultLayout'));
 
 function App() {
@@ -31,7 +34,13 @@ function App() {
         <Route element={<DefaultLayout />}>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/predict" element={<PredictForm />} />
+        <Route path="/number" element={<NumberForm />} />
+        <Route path="/english" element={<English />} />
+        <Route path="/telugu" element={<Telugu />} />
+        <Route path="/korean" element={<Korean />} />
+        <Route path="/japanese" element={<Japanese />} />
+   
+
         <Route path="/hindi" element={<HindiText />} />
           <Route index element={<ECommerce />} />
           {routes.map(({ path, component: Component }) => (
