@@ -45,6 +45,16 @@ const ECommerce = () => {
           <ChartThree message={'Korean'}/>
           </Link>
 
+          <Link to={'/number'}>
+          
+          <ChartThree message={'Digits'} />
+          </Link>
+
+          <Link to={'/telugu'}>
+          
+          <ChartThree message={'Telugu'} />
+          </Link>
+
           
 
 {/* 
@@ -60,14 +70,11 @@ const ECommerce = () => {
         {/* <ChatCard /> */}
       </div>
 
-      <div className='w-1/2 mt-4 mr-2 ml-90'>
+      
 
-          <Link to={'/number'}>
-          
-          <ChartThree message={'Digits'} />
-          </Link>
+         
         
-          </div>
+        
 
       <div className='flex justify-center items-center mt-4 '>
       

@@ -13,6 +13,7 @@ import English from './components/English';
 import Korean from './components/Korean';
 import Japanese from './components/Japanese';
 import Telugu from './components/Telugu';
+import PageForm from './components/PageForm';
 const DefaultLayout = lazy(() => import('./layout/DefaultLayout'));
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/telugu" element={<Telugu />} />
         <Route path="/korean" element={<Korean />} />
         <Route path="/japanese" element={<Japanese />} />
+        <Route path="/page" element={<PageForm />} />
    
 
         <Route path="/hindi" element={<HindiText />} />

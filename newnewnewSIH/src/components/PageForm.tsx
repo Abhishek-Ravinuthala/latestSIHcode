@@ -7,8 +7,7 @@ import Logo from '../../images/logo/logo.svg';
 // import NavBar from '../components/NavBar';
 import { useState, ChangeEvent, FormEvent } from 'react';
 
-
-function English() {
+function PageForm() {
   const [formData, setFormData] = useState<{ image: File | null }>({
     image: null,
   });
@@ -48,7 +47,7 @@ function English() {
    
 
     try {
-      const response = await fetch('http://127.0.0.1:8080/api/english', {
+      const response = await fetch('http://127.0.0.1:8080/api/page', {
         method: 'POST',
         body: formDataToSubmit, // Send the FormData object as the request body
       });
@@ -75,7 +74,7 @@ function English() {
         <div className="w-full  border-stroke dark:border-strokedark xl:w-1/2">
           <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
             <h2 className="mb-9  text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
-              English 
+              Page in English
             </h2>
             <div className="w-full  ">
               <form onSubmit={handleSubmit}>  
@@ -137,7 +136,7 @@ function English() {
 
           {resultData && (
             <>
-              <h2 className="flex max-w-4xl text-2xl mt-10 font-semibold">Result Data:</h2>
+              <h2 className="text-2xl mt-10 font-semibold">Result Data:</h2>
               <div className="mt-4">
                 <pre className="text-2xl">
                   {JSON.stringify(resultData, null, 2)}
@@ -151,4 +150,4 @@ function English() {
   );
 }
 
-export default English;
+export default PageForm;

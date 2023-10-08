@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify, session
-from pymongo import MongoClient
-from flask_cors import CORS
 
+from flask_cors import CORS
+import easyocr
+import cv2
 import os
 import numpy as np
 
-from gridfs import GridFS
 import bcrypt
 from flask_session import Session
 import tensorflow as tf
@@ -18,6 +18,20 @@ from matplotlib import pyplot as plt
 from joblib import Parallel, delayed
 import joblib
 from tensorflow.keras.models import load_model
+from googletrans import Translator
+
+# def translate_to_english(text, source_language='auto'):
+    
+#     return translation.text
+
+# Example usage:
+
+
+
+reader = easyocr.Reader(['en', 'hi'])
+leader = easyocr.Reader(['te', 'en'])
+feader = easyocr.Reader(['ja', 'en'])
+zeader = easyocr.Reader(['ko', 'en'])
 
 # Get the absolute path to the saved model file
 # model_file_path = os.path.abspath('model.sav')
@@ -29,22 +43,21 @@ CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
 # mongodb
 
-mongo_uri = "mongodb+srv://rvsssuryaabhishek:6ZWKhGJ28gabMBXI@cluster0.mjg9mcz.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(mongo_uri)
-db = client["crop-damage-users"]
-collection = db["users"]
-fs = GridFS(db)
-app.config['SECRET_KEY'] = 'charanpics'
 
-# Configure session type to use server-side sessions
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_COOKIE_PATH'] = '/'
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-app.config['SESSION_COOKIE_SECURE'] = True
-Session(app)
-print(collection)
+# db = client["crop-damage-users"]
+# collection = db["users"]
+# fs = GridFS(db)
+# app.config['SECRET_KEY'] = 'charanpics'
 
-# /api/home
+# # Configure session type to use server-side sessions
+# app.config['SESSION_TYPE'] = 'filesystem'
+# app.config['SESSION_COOKIE_PATH'] = '/'
+# app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+# app.config['SESSION_COOKIE_SECURE'] = True
+# Session(app)
+# print(collection)
+
+# # /api/home
 
 
 @app.route("/api/home", methods=['GET'])
@@ -191,6 +204,9 @@ def hindi():
     # if session.get('authenticated'):
     #     return jsonify({'message': 'Session is active'}), 200
     
+   
+
+    
     requested_image = request.files['image']
     model_path = os.path.join('devanagari_model.h5')
 
@@ -214,17 +230,52 @@ def hindi():
         img = img / 255
         img = img[:, :, :1]
 
-        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        # classnames = ["ka","kha","ga","gha","kna","cha","chha","ja","jha","yna","t`a","t`ha","d`a","d`ha","adna","ta","tha","da","dha","na","pa","pha","ba","bha","ma","yaw","ra","la","waw","sha","shat","sa","ha","aksha","tra","gya","0","1","2","3","4","5","6","7","8","9"]
+        # yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
+        # # classnames = ["ka","kha","ga","gha","kna","cha","chha","ja","jha","yna","t`a","t`ha","d`a","d`ha","adna","ta","tha","da","dha","na","pa","pha","ba","bha","ma","yaw","ra","la","waw","sha","shat","sa","ha","aksha","tra","gya","0","1","2","3","4","5","6","7","8","9"]
         
-        labels = [u'\u091E',u'\u091F',u'\u0920',u'\u0921',u'\u0922',u'\u0923',u'\u0924',u'\u0925',u'\u0926',u'\u0927',u'\u0915',u'\u0928',u'\u092A',u'\u092B',u'\u092c',u'\u092d',u'\u092e',u'\u092f',u'\u0930',u'\u0932',u'\u0935',u'\u0916',u'\u0936',u'\u0937',u'\u0938',u'\u0939','ksha','tra','gya',u'\u0917',u'\u0918',u'\u0919',u'\u091a',u'\u091b',u'\u091c',u'\u091d',u'\u0966',u'\u0967',u'\u0968',u'\u0969',u'\u096a',u'\u096b',u'\u096c',u'\u096d',u'\u096e',u'\u096f']
+        # labels = [u'\u091E',u'\u091F',u'\u0920',u'\u0921',u'\u0922',u'\u0923',u'\u0924',u'\u0925',u'\u0926',u'\u0927',u'\u0915',u'\u0928',u'\u092A',u'\u092B',u'\u092c',u'\u092d',u'\u092e',u'\u092f',u'\u0930',u'\u0932',u'\u0935',u'\u0916',u'\u0936',u'\u0937',u'\u0938',u'\u0939','ksha','tra','gya',u'\u0917',u'\u0918',u'\u0919',u'\u091a',u'\u091b',u'\u091c',u'\u091d',u'\u0966',u'\u0967',u'\u0968',u'\u0969',u'\u096a',u'\u096b',u'\u096c',u'\u096d',u'\u096e',u'\u096f']
 
-        classnames = np.array(labels)
-        yes = classnames[yhat[0].argmax()]
+        # classnames = np.array(labels)
+        # yes = classnames[yhat[0].argmax()]
 
         # if os.path.exists(image_path):
         #     os.remove(image_path)
-        return jsonify(yes)
+        # return jsonify(yes)
+        from matplotlib import pyplot as plt
+        result = reader.readtext(image_path,paragraph=True)
+
+        
+         # Example text in French
+        
+        
+        top_left = tuple(result[0][0][0])
+        bottom_right = tuple(result[0][0][2])
+        text = result[0][1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        
+
+        img = cv2.imread(image_path)
+        spacer = 300
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for detection in result:
+            top_left = tuple(detection[0][0])
+            bottom_right = tuple(detection[0][2])
+            text = detection[1]
+            img = cv2.rectangle(img,top_left,bottom_right,(0,255,0),3)
+            #img = cv2.putText(img,text,(20,spacer), font, 0.5,(255,255,0),2,cv2.LINE_AA)
+            spacer+=15
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(img)
+        # plt.show()
+
+        for i in result:
+            text =  (i[1])
+        translator = Translator()
+        translation = translator.translate(text, src='hi', dest='en')
+        translated_text = translation.text
+        return jsonify(text, translated_text)
+        
 
     except Exception as e:
         return jsonify({'error': str(e)})
@@ -259,18 +310,36 @@ def english():
         # img = img / 255
         # img = img[:, :, :1]
 
-        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        labels = ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z')
+        from matplotlib import pyplot as plt
+        result = reader.readtext(image_path,paragraph=True)
+
         
+
+        
+        top_left = tuple(result[0][0][0])
+        bottom_right = tuple(result[0][0][2])
+        text = result[0][1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
         
 
-        classnames = np.array(labels)
-        yes = classnames[yhat[0].argmax()]
+        img = cv2.imread(image_path)
+        spacer = 300
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for detection in result:
+            top_left = tuple(detection[0][0])
+            bottom_right = tuple(detection[0][2])
+            text = detection[1]
+            img = cv2.rectangle(img,top_left,bottom_right,(0,255,0),3)
+            #img = cv2.putText(img,text,(20,spacer), font, 0.5,(255,255,0),2,cv2.LINE_AA)
+            spacer+=15
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(img)
+        # plt.show()
 
-        # if os.path.exists(image_path):
-        #     os.remove(image_path)
-        return jsonify(yes)
-
+        for i in result:
+            return jsonify(i[1])
+        
     except Exception as e:
         return jsonify({'error': str(e)})
 
@@ -282,7 +351,7 @@ def korean():
     #     return jsonify({'message': 'Session is active'}), 200
     
     requested_image = request.files['image']
-    model_path = os.path.join('hangulkorea.h5')
+    # model_path = os.path.join('hangulkorea.h5')
 
     image_path = 'uploads/' + requested_image.filename
     requested_image.save(image_path)
@@ -294,7 +363,7 @@ def korean():
         # plt.imshow(resize.numpy().astype(int))
         # plt.show()
 
-        knn_from_joblib = load_model('hangulkorea.h5')
+        # knn_from_joblib = load_model('hangulkorea.h5')
         # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
         # load_model = pickle.load(open('model.sav', 'rb'))
         img = tf.image.decode_image(img)
@@ -304,18 +373,42 @@ def korean():
         img = img / 255
         img = img[:, :, :1]
 
-        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        # classnames = ["ka","kha","ga","gha","kna","cha","chha","ja","jha","yna","t`a","t`ha","d`a","d`ha","adna","ta","tha","da","dha","na","pa","pha","ba","bha","ma","yaw","ra","la","waw","sha","shat","sa","ha","aksha","tra","gya","0","1","2","3","4","5","6","7","8","9"]
+
+        from matplotlib import pyplot as plt
+        result = zeader.readtext(image_path,paragraph=True)
+
         
-        # labels = [u'\u091E',u'\u091F',u'\u0920',u'\u0921',u'\u0922',u'\u0923',u'\u0924',u'\u0925',u'\u0926',u'\u0927',u'\u0915',u'\u0928',u'\u092A',u'\u092B',u'\u092c',u'\u092d',u'\u092e',u'\u092f',u'\u0930',u'\u0932',u'\u0935',u'\u0916',u'\u0936',u'\u0937',u'\u0938',u'\u0939','ksha','tra','gya',u'\u0917',u'\u0918',u'\u0919',u'\u091a',u'\u091b',u'\u091c',u'\u091d',u'\u0966',u'\u0967',u'\u0968',u'\u0969',u'\u096a',u'\u096b',u'\u096c',u'\u096d',u'\u096e',u'\u096f']
-        dic={0:'a',1:'ae',2:'b',3:'bb',4:'ch',5:'d',6:'e',7:'eo',8:'eu',9:'g',10:'gg',11:'h',12:'i',13:'j',14:'k', 15:'m',16:'n', 17:'ng', 18:'o', 19: 'p', 20: 'r', 21: 's', 22: 'ss', 23:'t', 24: 'u', 25:'ya', 26:'yae', 27:'ye', 28:'yo',29:'yu'}
 
-        classnames = np.array(dic)
-        yes = classnames[yhat[0].argmax()]
+        
+        top_left = tuple(result[0][0][0])
+        bottom_right = tuple(result[0][0][2])
+        text = result[0][1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
 
-        # if os.path.exists(image_path):
-        #     os.remove(image_path)
-        return jsonify(yes)
+        
+
+        img = cv2.imread(image_path)
+        spacer = 300
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for detection in result:
+            top_left = tuple(detection[0][0])
+            bottom_right = tuple(detection[0][2])
+            text = detection[1]
+            img = cv2.rectangle(img,top_left,bottom_right,(0,255,0),3)
+            #img = cv2.putText(img,text,(20,spacer), font, 0.5,(255,255,0),2,cv2.LINE_AA)
+            spacer+=15
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(img)
+        # plt.show()
+
+        for i in result:
+            text =  (i[1])
+        translator = Translator()
+        translation = translator.translate(text, src='ko', dest='en')
+        translated_text = translation.text
+        return jsonify(text, translated_text)
+        
+
 
     except Exception as e:
         return jsonify({'error': str(e)})
@@ -346,7 +439,7 @@ def japanese():
         # plt.show()
 
         # knn_from_joblib = load_model('english.h5')
-        knn_from_joblib = joblib.load('cnn_hiragana.pkl')
+        # knn_from_joblib = joblib.load('cnn_hiragana.pkl')
         # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
         # load_model = pickle.load(open('model.sav', 'rb'))
         img = tf.image.decode_image(img)
@@ -356,17 +449,40 @@ def japanese():
         img = img / 255
         img = img[:, :, :1]
 
-        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        # classnames = ["ka","kha","ga","gha","kna","cha","chha","ja","jha","yna","t`a","t`ha","d`a","d`ha","adna","ta","tha","da","dha","na","pa","pha","ba","bha","ma","yaw","ra","la","waw","sha","shat","sa","ha","aksha","tra","gya","0","1","2","3","4","5","6","7","8","9"]
+        from matplotlib import pyplot as plt
+        result = feader.readtext(image_path,paragraph=True)
+
         
-        labels = [u'\u091E',u'\u091F',u'\u0920',u'\u0921',u'\u0922',u'\u0923',u'\u0924',u'\u0925',u'\u0926',u'\u0927',u'\u0915',u'\u0928',u'\u092A',u'\u092B',u'\u092c',u'\u092d',u'\u092e',u'\u092f',u'\u0930',u'\u0932',u'\u0935',u'\u0916',u'\u0936',u'\u0937',u'\u0938',u'\u0939','ksha','tra','gya',u'\u0917',u'\u0918',u'\u0919',u'\u091a',u'\u091b',u'\u091c',u'\u091d',u'\u0966',u'\u0967',u'\u0968',u'\u0969',u'\u096a',u'\u096b',u'\u096c',u'\u096d',u'\u096e',u'\u096f']
 
-        classnames = np.array(labels)
-        yes = classnames[yhat[0].argmax()]
+        
+        top_left = tuple(result[0][0][0])
+        bottom_right = tuple(result[0][0][2])
+        text = result[0][1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
 
-        # if os.path.exists(image_path):
-        #     os.remove(image_path)
-        return jsonify(yes)
+        
+
+        img = cv2.imread(image_path)
+        spacer = 300
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for detection in result:
+            top_left = tuple(detection[0][0])
+            bottom_right = tuple(detection[0][2])
+            text = detection[1]
+            img = cv2.rectangle(img,top_left,bottom_right,(0,255,0),3)
+            #img = cv2.putText(img,text,(20,spacer), font, 0.5,(255,255,0),2,cv2.LINE_AA)
+            spacer+=15
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(img)
+        # plt.show()
+
+        for i in result:
+            text =  (i[1])
+        translator = Translator()
+        translation = translator.translate(text, src='ja', dest='en')
+        translated_text = translation.text
+        return jsonify(text, translated_text)
+    
 
     except Exception as e:
         return jsonify({'error': str(e)})
@@ -384,7 +500,7 @@ def telugu():
     #     return jsonify({'message': 'Session is active'}), 200
     
     requested_image = request.files['image']
-    model_path = os.path.join('telugu.h5')
+    # model_path = os.path.join('telugu.h5')
 
     image_path = 'uploads/' + requested_image.filename
     requested_image.save(image_path)
@@ -396,7 +512,7 @@ def telugu():
         # plt.imshow(resize.numpy().astype(int))
         # plt.show()
 
-        knn_from_joblib = load_model('telugu.h5')
+        # knn_from_joblib = load_model('telugu.h5')
         # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
         # load_model = pickle.load(open('model.sav', 'rb'))
         img = tf.image.decode_image(img)
@@ -406,17 +522,133 @@ def telugu():
         img = img / 255
         
 
-        yhat = knn_from_joblib.predict(np.expand_dims(img, axis=0))
-        labels = ['a','aa','ai','e','ee','u']
-        classnames = np.array(labels)
-        yes = classnames[yhat[0].argmax()]
+        from matplotlib import pyplot as plt
+        result = leader.readtext(image_path,paragraph=True)
 
-        # if os.path.exists(image_path):
-        #     os.remove(image_path)
-        return jsonify(yes)
+        
 
+        
+        top_left = tuple(result[0][0][0])
+        bottom_right = tuple(result[0][0][2])
+        text = result[0][1]
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        
+
+        img = cv2.imread(image_path)
+        spacer = 300
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        for detection in result:
+            top_left = tuple(detection[0][0])
+            bottom_right = tuple(detection[0][2])
+            text = detection[1]
+            img = cv2.rectangle(img,top_left,bottom_right,(0,255,0),3)
+            #img = cv2.putText(img,text,(20,spacer), font, 0.5,(255,255,0),2,cv2.LINE_AA)
+            spacer+=15
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(img)
+        # plt.show()
+
+        for i in result:
+            text =  (i[1])
+        translator = Translator()
+        translation = translator.translate(text, src='te', dest='en')
+        translated_text = translation.text
+        return jsonify(text, translated_text)
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+@app.route('/api/page', methods=['POST'])
+def page():
+    image = request.files['image']
+    # model_path = os.path.join('telugu.h5')
+
+    image_path = 'uploads/' + image.filename
+    image.save(image_path)
+
+    import os
+    from PIL import Image
+
+    # Open the image
+
+    try:
+        image=Image.open(image_path)
+
+        # Get the width and height of the image
+        width, height = image.size
+
+        # Calculate the height of each part
+        part_height = height // 3
+        # Create a folder to save the parts
+        if not os.path.exists("output_folder"):
+            os.makedirs("output_folder")
+
+        all = []
+        # Loop through and crop the image into 10 parts
+        for i in range(3):
+            top = i * part_height
+            bottom = (i + 1) * part_height
+            part = image.crop((0, top, width, bottom))
+            
+            # Save each part in the output folder with a unique filename
+            part.save(os.path.join("output_folder", f"part_{i + 1}.jpg"))
+            print(os.path.join('output_folder', 'part_1.jpg'))
+
+
+    # Close the original image
+            
+            path = os.path.join("output_folder", f"part_{i + 1}.jpg")
+        
+
+        
+
+            img = tf.io.read_file(path)
+
+            # plt.imshow(resize.numpy().astype(int))
+            # plt.show()
+
+            # knn_from_joblib = load_model('english.h5')
+            # knn_from_joblib = joblib.load('latestdigitsnew.pkl')
+            # load_model = pickle.load(open('model.sav', 'rb'))
+       
+
+        # Scale the tensor
+            # img = img / 255
+            # img = img[:, :, :1]
+            
+            from matplotlib import pyplot as plt
+            result = reader.readtext(path,paragraph=True)
+            for i in result:
+                all.append(i[1])
+            
+
+            
+       
+
+            
+
+       
+        
+            
+
+        
+        
+       
+        for i in all:
+             
+                return jsonify(all[0], all[1], all[2])
+                
+            # return all
+    except Exception as e:
+            return jsonify({'error': str(e)})
+
+
+
+    
+
+    
+
+
 
 
 
